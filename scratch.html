@@ -25,7 +25,6 @@ function attrs(el) { for(var o={},i=0,a;a=el.attributes[i];i++)o[a.name]=a.value
 function merge(o1,o2) { var o={};for(var k in o1)o[k]=o1[k]; for(k in o2)o[k]=o2[k]; return o; }
 
 var FONT_NAME = "SourceSansPro-Light";
-var FONT_WEIGHT = "300";
 
 var request = new XMLHttpRequest();
 var lineContext = {left:0, top:0};
@@ -37,9 +36,9 @@ c.height = c.offsetHeight;
 request.onreadystatechange = function() {
   if (request.readyState > 3) {
     var fontDoc = request.responseXML;
-    var faceSelector = 'font-face[font-weight="'+FONT_WEIGHT+'"]';
     var fontFace = merge(attrs(fontDoc.querySelector('font')),
-                     attrs(fontDoc.querySelector(faceSelector)));
+                     attrs(fontDoc.querySelector('font-face')));
+    console.log(fontFace);
     fontFace.glyphs = {};
     fontFace.glyphCounts = [];
     var glyphNodes = fontDoc.querySelectorAll('glyph');
@@ -81,7 +80,7 @@ document.body.onkeypress = function(e) {
 }
 
 function horizontalAdvance( ctx, fontFace, leftGlyph, rightGlyph ) {
-  var horizAdv = +fontFace['horiz-adv-x'] + (+leftGlyph['horiz-adv-x']);
+  var horizAdv = +leftGlyph['horiz-adv-x'] || numeric(fontFace['horiz-adv-x']);
   var kern = fontFace.kerns[ leftGlyph.unicode + '**' + rightGlyph.unicode ]
     || fontFace.kerns[ leftGlyph.unicode + '**' + rightGlyph['glyph-name'] ]
     || fontFace.kerns[ leftGlyph['glyph-name'] + '**' + rightGlyph.unicode ]
@@ -146,6 +145,7 @@ function renderGlyph(ctx, glyph) {
   })
 }
 
+function numeric(val) { return +(val||0); }
 function quadToCubic(c) {
   var s = c.slice(0,2), m = c.slice(2,4), e = c.slice(4,6);
   return s.concat(cubesplit(s,m)).concat(cubesplit(e,m)).concat(e) }
